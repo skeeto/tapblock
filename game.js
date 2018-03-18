@@ -18,6 +18,8 @@ const COLORS = new Float32Array([
 ]);
 const CONNECT = [+1, +0, -1, +0, +0, +1, +0, -1];
 
+/* Create a new random game state.
+ */
 function tapblock(w, h, n) {
     let g = new Uint8Array(w * h);
     for (let y = 0; y < h; y++) {
@@ -34,10 +36,15 @@ function tapblock(w, h, n) {
     };
 }
 
+/* Return true if (x, y) is within the bounds of the game grid.
+ */
 function inbounds(game, x, y) {
     return x >= 0 && x < game.width && y >= 0 && y < game.height;
 }
 
+/* Mark the connected blob under (x, y).
+ * Returns the size of the blob.
+ */
 function mark(game, x, y) {
     let count = 0;
     function visit(x, y) {
@@ -68,6 +75,9 @@ function mark(game, x, y) {
     return count;
 }
 
+/* Mark the selected blob under pixel coordinates (px, py).
+ * Returns the size of the selected blob.
+ */
 function highlight(game, px, py) {
     let [x, y] = transform(game.inv, px, py);
     x = Math.floor(x);
@@ -75,6 +85,8 @@ function highlight(game, px, py) {
     return mark(game, x, y);
 }
 
+/* Collapse the space vertically into (x, y).
+ */
 function gravity(game, x, y) {
     let w = game.width;
     let g = game.grid;
@@ -90,6 +102,8 @@ function gravity(game, x, y) {
     } while (!g[y * w + x] && count);
 }
 
+/* Collapse the space horizontally into column x.
+ */
 function shift(game, x) {
     let w = game.width;
     let h = game.height;
@@ -110,6 +124,8 @@ function shift(game, x) {
     } while (count && !g[(h - 1) * w + x]);
 }
 
+/* Collapse all empty gaps in the game grid.
+ */
 function collapse(game) {
     let w = game.width;
     let h = game.height;
@@ -127,6 +143,8 @@ function collapse(game) {
             shift(game, x);
 }
 
+/* Collapse the blob under the pixel coordinate (px, py).
+ */
 function clear(game, px, py) {
     let [x, y] = transform(game.inv, px, py);
     x = Math.floor(x);
@@ -142,6 +160,8 @@ function clear(game, px, py) {
     collapse(game);
 }
 
+/* Return true if there are no more moves left.
+ */
 function isdone(game) {
     for (let y = 0; y < game.height; y++)
         for (let x = 0; x < game.width; x++)
@@ -150,6 +170,8 @@ function isdone(game) {
     return true;
 }
 
+/* Count the remaining blocks.
+ */
 function score(game) {
     let score = 0;
     for (let y = 0; y < game.height; y++)
@@ -158,12 +180,18 @@ function score(game) {
     return score;
 }
 
+/* Convert normalized color (r, g, b) into a CSS value.
+ */
 function color(r, g, b) {
     return 'rgb(' + Math.round(r * 255) + ', ' +
                     Math.round(g * 255) + ', ' +
                     Math.round(b * 255) + ')';
 }
 
+/* Create an affine transformation matrix.
+ * This matrix is suitable for the transform() method on a drawing
+ * context.
+ */
 function affine(x, y, scale, rotate) {
     return new Float32Array([
         +Math.cos(rotate) * scale,
@@ -175,6 +203,8 @@ function affine(x, y, scale, rotate) {
     ]);
 }
 
+/* Return the inversion of the given affine transformation matrix.
+ */
 function invert(m) {
     let cross = m[0] * m[3] - m[1] * m[2];
     return new Float32Array([
@@ -187,6 +217,8 @@ function invert(m) {
     ]);
 }
 
+/* Apply the affine transformation to (x, y).
+ */
 function transform(m, x, y) {
     let xx = x + m[4];
     let yy = y + m[5];
@@ -196,6 +228,9 @@ function transform(m, x, y) {
     ];
 }
 
+/* Draw the given game to the given context.
+ * Game may be null, in which case the display is cleared.
+ */
 function draw(ctx, game) {
     let cw = ctx.canvas.width;
     let ch = ctx.canvas.height;
@@ -274,6 +309,8 @@ function draw(ctx, game) {
     ctx.restore();
 }
 
+/* Bind a menu control to a field on a config object.
+ */
 function control(id, config, min, max) {
     let buttons = document.querySelectorAll('#' + id + ' button');
     let span = document.querySelector('#' + id + ' span');
@@ -298,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     let game = null;
 
-
     function redraw() {
         ctx.canvas.width = window.innerWidth;
         ctx.canvas.height = window.innerHeight;
@@ -306,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     redraw();
 
-    /* menu */
+    /* main menu */
 
     let menu = document.getElementById('menu');
     let restart = document.getElementById('restart');
