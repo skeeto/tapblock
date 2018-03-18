@@ -72,7 +72,7 @@ function highlight(game, px, py) {
     let [x, y] = transform(game.inv, px, py);
     x = Math.floor(x);
     y = Math.floor(y);
-    mark(game, x, y);
+    return mark(game, x, y);
 }
 
 function gravity(game, x, y) {
@@ -333,14 +333,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ctx.canvas.addEventListener('mousemove', function(e) {
         if (!game) return;
-        highlight(game, e.clientX, e.clientY);
+        if (highlight(game, e.clientX, e.clientY))
+            ctx.canvas.style.cursor = 'pointer';
+        else
+            ctx.canvas.style.cursor = 'auto';
         redraw();
     });
 
     ctx.canvas.addEventListener('mouseup', function(e) {
         if (!game) return;
         clear(game, e.clientX, e.clientY);
-        highlight(game, e.clientX, e.clientY);
+        if (highlight(game, e.clientX, e.clientY))
+            ctx.canvas.style.cursor = 'pointer';
+        else
+            ctx.canvas.style.cursor = 'auto';
         redraw();
         if (game && isdone(game))
             restart.style.display = 'block';
@@ -349,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.canvas.addEventListener('mouseout', function(e) {
         if (!game) return;
         highlight(game, -1, -1);
+        ctx.canvas.style.cursor = 'auto';
         redraw();
     });
 
