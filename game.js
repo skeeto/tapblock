@@ -326,8 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
     /* game interaction */
 
     window.addEventListener('resize', function(e) {
-        if (!game) return;
-        highlight(game, -1, -1);
+        if (game)
+            highlight(game, -1, -1);
         redraw();
     });
 
