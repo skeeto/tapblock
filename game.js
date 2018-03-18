@@ -155,7 +155,7 @@ function color(r, g, b) {
                     Math.round(b * 255) + ')';
 }
 
-function affine(x, y, scale, rotate){
+function affine(x, y, scale, rotate) {
     return new Float32Array([
         +Math.cos(rotate) * scale,
         +Math.sin(rotate) * scale,
@@ -178,7 +178,7 @@ function invert(m) {
     ]);
 }
 
-function transform(m, x, y){        
+function transform(m, x, y) {
     let xx = x + m[4];
     let yy = y + m[5];
     return [
@@ -272,29 +272,50 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.canvas.height = window.innerHeight;
         draw(ctx, game);
     }
-
-    window.addEventListener('resize', redraw);
     redraw();
 
-    function inputmove(e) {
-        highlight(game, e.clientX, e.clientY);
-        redraw();
-    }
-    ctx.canvas.addEventListener('mousemove', inputmove);
-
-    function inputup(e) {
-        clear(game, e.clientX, e.clientY);
-        if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents)
-            highlight(game, -1, -1);
-        else
-            highlight(game, e.clientX, e.clientY);
-        redraw();
-    }
-    ctx.canvas.addEventListener('mouseup', inputup);
-
-    function inputend(e) {
+    window.addEventListener('resize', function(e) {
         highlight(game, -1, -1);
         redraw();
-    }
-    ctx.canvas.addEventListener('mouseout', inputup);
+    });
+
+    ctx.canvas.addEventListener('mousemove', function(e) {
+        highlight(game, e.clientX, e.clientY);
+        redraw();
+    });
+
+    ctx.canvas.addEventListener('mouseup', function(e) {
+        clear(game, e.clientX, e.clientY);
+        highlight(game, e.clientX, e.clientY);
+        redraw();
+    });
+
+    ctx.canvas.addEventListener('mouseout', function(e) {
+        highlight(game, -1, -1);
+        redraw();
+    });
+
+    let lastTouch = null;
+
+    ctx.canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        lastTouch = e.touches[e.touches.length - 1];
+        highlight(game, lastTouch.clientX, lastTouch.clientY);
+        redraw();
+    });
+
+    ctx.canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        lastTouch = e.touches[e.touches.length - 1];
+        highlight(game, lastTouch.clientX, lastTouch.clientY);
+        redraw();
+    });
+
+    ctx.canvas.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        clear(game, lastTouch.clientX, lastTouch.clientY);
+        lastTouch = null;
+        highlight(game, -1, -1);
+        redraw();
+    });
 });
