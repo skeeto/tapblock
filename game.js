@@ -1,3 +1,12 @@
+const WIDTH_DEFAULT = 10;
+const WIDTH_MIN = 4;
+const WIDTH_MAX = 32;
+const HEIGHT_DEFAULT = 16;
+const HEIGHT_MIN = 4;
+const HEIGHT_MAX = 64;
+const COLORS_DEFAULT = 4;
+const COLORS_MIN = 2;
+const COLORS_MAX = 6;
 const COLORS = new Float32Array([
     0.27, 0.27, 0.27,
     1.00, 0.35, 0.35,
@@ -188,20 +197,23 @@ function transform(m, x, y) {
 }
 
 function draw(ctx, game) {
+    let cw = ctx.canvas.width;
+    let ch = ctx.canvas.height;
+    ctx.fillStyle = color(...COLORS);
+    ctx.fillRect(0, 0, cw, ch);
+    if (!game)
+        return;
+
     let w = game.width;
     let h = game.height;
     let grid = game.grid;
 
-    let cw = ctx.canvas.width;
-    let ch = ctx.canvas.height;
     let s;
     if (cw / ch < w / h)
         s = cw / w;
     else
         s = ch / h;
 
-    ctx.fillStyle = color(...COLORS);
-    ctx.fillRect(0, 0, cw, ch);
     ctx.save();
 
     let tx = (cw - w  * s) / 2;
@@ -262,10 +274,30 @@ function draw(ctx, game) {
     ctx.restore();
 }
 
+function control(id, config, min, max) {
+    let buttons = document.querySelectorAll('#' + id + ' button');
+    let span = document.querySelector('#' + id + ' span');
+    buttons[0].addEventListener('click', function() {
+        config[id] = Math.max(min, config[id] - 1);
+        span.textContent = config[id];
+    });
+    buttons[1].addEventListener('click', function() {
+        config[id] = Math.min(max, config[id] + 1);
+        span.textContent = config[id];
+    });
+    span.textContent = config[id];
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     let ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
     let body = document.getElementsByTagName('body')[0];
-    let game = new tapblock(10, 16, 4);
+    let config = {
+        width: WIDTH_DEFAULT,
+        height: HEIGHT_DEFAULT,
+        colors: COLORS_DEFAULT
+    };
+    let game = null;
+
 
     function redraw() {
         ctx.canvas.width = window.innerWidth;
@@ -274,23 +306,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     redraw();
 
+    /* menu */
+
+    let menu = document.getElementById('menu');
+    let restart = document.getElementById('restart');
+    control('width', config, WIDTH_MIN, WIDTH_MAX);
+    control('height', config, HEIGHT_MIN, HEIGHT_MAX);
+    control('colors', config, COLORS_MIN, COLORS_MAX);
+    document.getElementById('start').addEventListener('click', function() {
+        game = new tapblock(config.width, config.height, config.colors);
+        menu.style.display = 'none';
+        redraw();
+    });
+    restart.addEventListener('click', function() {
+        restart.style.display = 'none';
+        menu.style.display = 'block';
+    });
+
+    /* game interaction */
+
     window.addEventListener('resize', function(e) {
+        if (!game) return;
         highlight(game, -1, -1);
         redraw();
     });
 
     ctx.canvas.addEventListener('mousemove', function(e) {
+        if (!game) return;
         highlight(game, e.clientX, e.clientY);
         redraw();
     });
 
     ctx.canvas.addEventListener('mouseup', function(e) {
+        if (!game) return;
         clear(game, e.clientX, e.clientY);
         highlight(game, e.clientX, e.clientY);
         redraw();
+        if (game && isdone(game))
+            restart.style.display = 'block';
     });
 
     ctx.canvas.addEventListener('mouseout', function(e) {
+        if (!game) return;
         highlight(game, -1, -1);
         redraw();
     });
@@ -299,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ctx.canvas.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        if (!game) return;
         lastTouch = e.touches[e.touches.length - 1];
         highlight(game, lastTouch.clientX, lastTouch.clientY);
         redraw();
@@ -306,6 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ctx.canvas.addEventListener('touchmove', function(e) {
         e.preventDefault();
+        if (!game) return;
         lastTouch = e.touches[e.touches.length - 1];
         highlight(game, lastTouch.clientX, lastTouch.clientY);
         redraw();
@@ -313,9 +372,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ctx.canvas.addEventListener('touchend', function(e) {
         e.preventDefault();
+        if (!game) return;
         clear(game, lastTouch.clientX, lastTouch.clientY);
         lastTouch = null;
         highlight(game, -1, -1);
         redraw();
+        if (game && isdone(game))
+            restart.style.display = 'block';
     });
 });
