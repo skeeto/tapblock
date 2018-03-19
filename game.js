@@ -335,6 +335,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     let game = null;
 
+    try {
+        let saved = localStorage["tapblock_config"];
+        if (saved)
+            Object.assign(config, JSON.parse(saved));
+    } catch (e) {
+        console.log(e);
+    }
+
     function redraw() {
         ctx.canvas.width = window.innerWidth;
         ctx.canvas.height = window.innerHeight;
@@ -353,6 +361,11 @@ document.addEventListener('DOMContentLoaded', function() {
         game = new tapblock(config.width, config.height, config.colors);
         menu.style.display = 'none';
         redraw();
+        try {
+            localStorage["tapblock_config"] = JSON.stringify(config);
+        } catch (e) {
+            console.log(e);
+        }
     });
     restart.addEventListener('click', function() {
         restart.style.display = 'none';
