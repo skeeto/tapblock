@@ -172,7 +172,7 @@ function isdone(game) {
 
 /* Count the remaining blocks.
  */
-function score(game) {
+function blocksleft(game) {
     let score = 0;
     for (let y = 0; y < game.height; y++)
         for (let x = 0; x < game.width; x++)
@@ -295,17 +295,6 @@ function draw(ctx, game) {
         }
     }
 
-    if (isdone(game)) {
-        ctx.fillStyle = '#fff';
-        ctx.font = '0.8px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText('Game Over', game.width / 2, game.height / 4);
-        ctx.font = '0.5px sans-serif';
-        ctx.textBaseline = 'top';
-        ctx.fillText('Score: ' + score(game), game.width / 2, game.height / 4);
-    }
-
     ctx.restore();
 }
 
@@ -353,6 +342,8 @@ document.addEventListener('DOMContentLoaded', function() {
     /* main menu */
 
     let menu = document.getElementById('menu');
+    let gameover = document.getElementById('gameover');
+    let score = document.getElementById('score');
     let restart = document.getElementById('restart');
     control('width', config, WIDTH_MIN, WIDTH_MAX);
     control('height', config, HEIGHT_MIN, HEIGHT_MAX);
@@ -368,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     restart.addEventListener('click', function() {
-        restart.style.display = 'none';
+        gameover.style.display = 'none';
         menu.style.display = 'block';
     });
 
@@ -397,8 +388,10 @@ document.addEventListener('DOMContentLoaded', function() {
         else
             ctx.canvas.style.cursor = 'auto';
         redraw();
-        if (game && isdone(game))
-            restart.style.display = 'block';
+        if (game && isdone(game)) {
+            score.textContent = 'Score: ' + blocksleft(game);
+            gameover.style.display = 'block';
+        }
     });
 
     ctx.canvas.addEventListener('mouseout', function(e) {
@@ -433,7 +426,9 @@ document.addEventListener('DOMContentLoaded', function() {
         lastTouch = null;
         highlight(game, -1, -1);
         redraw();
-        if (game && isdone(game))
-            restart.style.display = 'block';
+        if (game && isdone(game)) {
+            score.textContent = 'Score: ' + blocksleft(game);
+            gameover.style.display = 'block';
+        }
     });
 });

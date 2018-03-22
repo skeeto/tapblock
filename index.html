@@ -61,13 +61,21 @@ label {
     font-size: 40px;
     margin-top: 30px;
 }
-#restart {
+#gameover {
     display: none;
-    font-size: 40px;
     left: 50%;
     position: absolute;
-    top: 10%;
+    top: 30%;
+    text-align: center;
     transform: translate(-50%, -50%);
+}
+.gameover {
+    font-size: 40px;
+    color: white;
+}
+#restart {
+    margin-top: 20px;
+    font-size: 40px;
 }
 </style>
 <canvas></canvas>
@@ -93,5 +101,9 @@ label {
     </div>
     <button id="start">Start</button>
 </div>
-<button id="restart">Restart</button>
+<div id="gameover">
+    <div class="gameover">Game Over</div>
+    <div class="gameover" id="score"></div>
+    <button id="restart">Restart</button>
+</div>
 <script src="game.js"></script>
