@@ -77,6 +77,31 @@ label {
     margin-top: 20px;
     font-size: 40px;
 }
+#tapout {
+    display: none;
+    color: yellow;
+    font-weight: bold;
+    font-size: 46px;
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    animation-iteration-count: infinite;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+@keyframes shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    20%, 80% {
+        transform: translate3d(2px, -2px, 0);
+    }
+    30%, 50%, 70% {
+        transform: translate3d(-4px, -1px, 0);
+    }
+    40%, 60% {
+        transform: translate3d(4px, -5px, 0);
+    }
+}
 </style>
 <canvas></canvas>
 <div id="menu">
@@ -104,6 +129,7 @@ label {
 <div id="gameover">
     <div class="gameover">Game Over</div>
     <div class="gameover" id="score"></div>
+    <div class="gameover" id="tapout">TAPPED OUT!</div>
     <button id="restart">Restart</button>
 </div>
 <script src="game.js"></script>

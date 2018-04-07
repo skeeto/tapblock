@@ -344,6 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let menu = document.getElementById('menu');
     let gameover = document.getElementById('gameover');
     let score = document.getElementById('score');
+    let tapout = document.getElementById('tapout');
     let restart = document.getElementById('restart');
     control('width', config, WIDTH_MIN, WIDTH_MAX);
     control('height', config, HEIGHT_MIN, HEIGHT_MAX);
@@ -389,7 +390,9 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.canvas.style.cursor = 'auto';
         redraw();
         if (game && isdone(game)) {
-            score.textContent = 'Score: ' + blocksleft(game);
+            let count = blocksleft(game);
+            score.textContent = 'Score: ' + count;
+            tapout.style.display = count ? 'none' : 'block';
             gameover.style.display = 'block';
         }
     });
