@@ -300,18 +300,69 @@ function draw(ctx, game) {
 
 /* Bind a menu control to a field on a config object.
  */
-function control(id, config, min, max) {
+function control(id, config, min, max, cb) {
     let buttons = document.querySelectorAll('#' + id + ' button');
     let span = document.querySelector('#' + id + ' span');
     buttons[0].addEventListener('click', function() {
         config[id] = Math.max(min, config[id] - 1);
         span.textContent = config[id];
+        if (cb) cb();
     });
     buttons[1].addEventListener('click', function() {
         config[id] = Math.min(max, config[id] + 1);
         span.textContent = config[id];
+        if (cb) cb();
     });
     span.textContent = config[id];
+}
+
+function toDisplayTime(seconds) {
+    let s = Math.round(seconds % 60).toString();
+    if (s.length == 1)
+        s = '0' + s;
+    let m = Math.floor(seconds / 60);
+    return m + ':' + s;
+}
+
+function computeStats(config) {
+    let games = 0;
+    let time = 0;
+    let average = 0;
+    let best = null;
+    let completed = 0;
+    for (let i = 0; i < config.log.length; i++) {
+        let e = config.log[i];
+        if (config.width  === e.width &&
+            config.height === e.height &&
+            config.colors === e.colors) {
+
+            games++;
+            if (e.end) {
+                completed++;
+                time += (e.end - e.start) / 1000;
+                average += e.result;
+                if (best == null || e.result < best) {
+                    best = e.result;
+                }
+            }
+        }
+    }
+    if (completed > 0) {
+        games = completed + ' / ' + games;
+        time = toDisplayTime(time / completed);
+        average = Math.floor(average * 10 / completed) / 10;
+    } else {
+        games = '0 / ' + games;
+        time = 'N/A';
+        average = 'N/A';
+        best = 'N/A';
+    }
+    return {
+        games: games,
+        time: time,
+        average: average,
+        best: best
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -320,9 +371,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let config = {
         width: WIDTH_DEFAULT,
         height: HEIGHT_DEFAULT,
-        colors: COLORS_DEFAULT
+        colors: COLORS_DEFAULT,
+        log: []
     };
     let game = null;
+    let logentry = null;
 
     try {
         let saved = localStorage["tapblock_config"];
@@ -346,11 +399,34 @@ document.addEventListener('DOMContentLoaded', function() {
     let score = document.getElementById('score');
     let tapout = document.getElementById('tapout');
     let restart = document.getElementById('restart');
-    control('width', config, WIDTH_MIN, WIDTH_MAX);
-    control('height', config, HEIGHT_MIN, HEIGHT_MAX);
-    control('colors', config, COLORS_MIN, COLORS_MAX);
+    let statGames = document.getElementById('stat-games');
+    let statTime = document.getElementById('stat-time');
+    let statAverage = document.getElementById('stat-average');
+    let statBest = document.getElementById('stat-best');
+
+    function updateStats() {
+        let stats = computeStats(config);
+        statGames.textContent = stats.games;
+        statTime.textContent = stats.time;
+        statAverage.textContent = stats.average;
+        statBest.textContent = stats.best;
+    }
+    updateStats();
+
+    control('width', config, WIDTH_MIN, WIDTH_MAX, updateStats);
+    control('height', config, HEIGHT_MIN, HEIGHT_MAX, updateStats);
+    control('colors', config, COLORS_MIN, COLORS_MAX, updateStats);
     document.getElementById('start').addEventListener('click', function() {
         game = new tapblock(config.width, config.height, config.colors);
+        logentry = {
+            start: Date.now(),
+            end: null,
+            result: null,
+            width: config.width,
+            height: config.height,
+            colors: config.colors
+        };
+        config.log.push(logentry);
         menu.style.display = 'none';
         redraw();
         try {
@@ -362,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
     restart.addEventListener('click', function() {
         gameover.style.display = 'none';
         menu.style.display = 'block';
+        updateStats();
     });
 
     /* game interaction */
@@ -381,6 +458,16 @@ document.addEventListener('DOMContentLoaded', function() {
         redraw();
     });
 
+    function logGameOver(score) {
+        logentry.result = score;
+        logentry.end = Date.now();
+        try {
+            localStorage["tapblock_config"] = JSON.stringify(config);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     ctx.canvas.addEventListener('mouseup', function(e) {
         if (!game) return;
         clear(game, e.clientX, e.clientY);
@@ -394,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
             score.textContent = 'Score: ' + count;
             tapout.style.display = count ? 'none' : 'block';
             gameover.style.display = 'block';
+            logGameOver(count);
         }
     });
 
@@ -430,8 +518,11 @@ document.addEventListener('DOMContentLoaded', function() {
         highlight(game, -1, -1);
         redraw();
         if (game && isdone(game)) {
-            score.textContent = 'Score: ' + blocksleft(game);
+            let count = blocksleft(game);
+            score.textContent = 'Score: ' + count;
+            tapout.style.display = count ? 'none' : 'block';
             gameover.style.display = 'block';
+            logGameOver(count);
         }
     });
 });

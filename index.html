@@ -57,6 +57,18 @@ label {
     text-align: left;
     width: 220px;
 }
+.stats h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+}
+.stats {
+    font-size: 18px;
+    margin: 0;
+}
+.stat {
+    font-weight: bold;
+}
 #start {
     font-size: 40px;
     margin-top: 30px;
@@ -123,6 +135,17 @@ label {
         <div class="control">
             <button>-</button><span>XX</span><button>+</button>
         </div>
+    </div>
+    <div class="stats">
+        <h2>With these settings…</h2>
+        Games completed / total:
+        <span class="stat" id="stat-games">#</span><br/>
+        Average play time:
+        <span class="stat" id="stat-time">#</span><br/>
+        Best score:
+        <span class="stat" id="stat-best">#</span><br/>
+        Average score:
+        <span class="stat" id="stat-average">#</span><br/>
     </div>
     <button id="start">Start</button>
 </div>
